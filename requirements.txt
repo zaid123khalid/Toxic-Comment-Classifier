@@ -1,0 +1,15 @@
+flask
+flask-login 
+flask-sqlalchemy
+sqlalchemy
+werkzeug
+functools
+os
+datetime
+sys
+sklearn
+joblib
+nltk
+pandas
+seaborn
+numpy
