@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Flagged Predictions — TCCS Admin{% endblock %}
+{% block styling %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/admin.css') }}" />
+{% endblock %}
+{% block content %}
+    <div class="page-wrap">
+        <div class="page-header">
+            <div>
+                <div class="label">Admin Console</div>
+                <h1>
+                    Flagged <span>Predictions</span>
+                </h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                {% set reviewed_count = flags | selectattr('status', 'ne', 'pending') | list | length %}
+                <form method="POST"
+                      action="{{ url_for("main.retrain_model") }}"
+                      onsubmit="return confirmRetrain()">
+                    <button type="submit"
+                            class="retrain-btn"
+                            {% if reviewed_count == 0 %}disabled title="No reviewed entries to train on"{% endif %}>
+                        ⚙ Retrain Model
+                        {% if reviewed_count > 0 %}<span class="retrain-badge">{{ reviewed_count }}</span>{% endif %}
+                    </button>
+                </form>
+                <a href="{{ url_for("main.dashboard") }}">← Back to Dashboard</a>
+            </div>
+        </div>
+        <div style="background: rgba(0,229,255,0.05);
+                    border: 1px solid rgba(0,229,255,0.15);
+                    border-radius: 12px;
+                    padding: 1rem 1.4rem;
+                    margin-bottom: 1.5rem;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 0.8rem">
+            <span style="font-size: 1.1rem; flex-shrink: 0;">ℹ️</span>
+            <div>
+                <div style="font-family: var(--mono);
+                            font-size: 0.72rem;
+                            color: var(--accent);
+                            letter-spacing: 0.1em;
+                            text-transform: uppercase;
+                            margin-bottom: 3px">Review Workflow</div>
+                <div style="font-size: 0.84rem;
+                            color: rgba(255,255,255,0.5);
+                            line-height: 1.5">
+                    Review flagged entries → Select correct label → Approve or Reject → Retrain model with reviewed data.
+                </div>
+            </div>
+        </div>
+        {% if not flags %}
+            <div class="panel">
+                <div class="empty-state">// No flagged predictions yet</div>
+            </div>
+        {% else %}
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Flagged Entries</span>
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        {% set pending_count = flags | selectattr('status', 'eq', 'pending') | list | length %}
+                        {% if pending_count > 0 %}
+                            <span style="font-family: var(--mono);
+                                         font-size: 0.6rem;
+                                         letter-spacing: 0.1em;
+                                         text-transform: uppercase;
+                                         padding: 2px 8px;
+                                         border-radius: 4px;
+                                         background: rgba(255,183,0,0.12);
+                                         color: var(--warning);
+                                         border: 1px solid rgba(255,183,0,0.3)">{{ pending_count }} pending</span>
+                        {% endif %}
+                        {% if reviewed_count > 0 %}
+                            <span style="font-family: var(--mono);
+                                         font-size: 0.6rem;
+                                         letter-spacing: 0.1em;
+                                         text-transform: uppercase;
+                                         padding: 2px 8px;
+                                         border-radius: 4px;
+                                         background: rgba(100,116,139,0.15);
+                                         color: #64748b;
+                                         border: 1px solid rgba(100,116,139,0.25)">{{ reviewed_count }} reviewed</span>
+                        {% endif %}
+                        <span class="panel-badge">{{ flags | length }} total</span>
+                    </div>
+                </div>
+                <table class="pred-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Comment</th>
+                            <th>Original</th>
+                            <th>Confidence</th>
+                            <th>Correct Label</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in flags %}
+                            {% if f.status == 'pending' %}
+                                <tr>
+                                    <td class="time-cell">{{ f.created_at.strftime("%d %b, %H:%M") }}</td>
+                                    <td>
+                                        <span style="font-family: var(--mono); font-size: 0.78rem; color: #64748b;">#{{ f.user_id }}</span>
+                                    </td>
+                                    <td class="comment-cell">
+                                        <span class="comment-text"
+                                              onclick="this.classList.toggle('expanded')"
+                                              title="Click to expand">{{ f.comment_text }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-toxic {{ 'toxic' if f.original_prediction == 'toxic' else 'non-toxic' }}">
+                                            {{ f.original_prediction }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="confidence-bar-wrap">
+                                            <div class="confidence-bar">
+                                                <div class="confidence-bar-fill"
+                                                     style="width: {{ (f.original_confidence * 100) | round(1) }}%;
+                                                            background: {{ 'var(--danger) ' if f.original_prediction == 'toxic' else 'var(--success)' }}">
+                                                </div>
+                                            </div>
+                                            <span class="confidence-val">{{ (f.original_confidence * 100) | round(1) }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <form method="POST"
+                                              action="{{ url_for("main.correct_prediction") }}"
+                                              id="form-{{ f.id }}">
+                                            <input type="hidden" name="flag_id" value="{{ f.id }}">
+                                            <select name="corrected_label" class="flag-select">
+                                                <option value="toxic">Toxic</option>
+                                                <option value="non-toxic">Non-Toxic</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 0.4rem;">
+                                            <button type="submit"
+                                                    name="action"
+                                                    value="approve"
+                                                    form="form-{{ f.id }}"
+                                                    style="background: rgba(0,245,160,0.1);
+                                                           border: 1px solid rgba(0,245,160,0.3);
+                                                           border-radius: 6px;
+                                                           color: var(--success);
+                                                           font-family: var(--mono);
+                                                           font-size: 0.7rem;
+                                                           padding: 4px 10px;
+                                                           cursor: pointer;
+                                                           transition: background 0.15s"
+                                                    onmouseover="this.style.background='rgba(0,245,160,0.2)'"
+                                                    onmouseout="this.style.background='rgba(0,245,160,0.1)'">
+                                                ✓ Approve
+                                            </button>
+                                            <button type="submit"
+                                                    name="action"
+                                                    value="reject"
+                                                    form="form-{{ f.id }}"
+                                                    style="background: rgba(255,77,109,0.1);
+                                                           border: 1px solid rgba(255,77,109,0.25);
+                                                           border-radius: 6px;
+                                                           color: var(--danger);
+                                                           font-family: var(--mono);
+                                                           font-size: 0.7rem;
+                                                           padding: 4px 10px;
+                                                           cursor: pointer;
+                                                           transition: background 0.15s"
+                                                    onmouseover="this.style.background='rgba(255,77,109,0.2)'"
+                                                    onmouseout="this.style.background='rgba(255,77,109,0.1)'">
+                                                ✗ Reject
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr style="opacity: 0.5;">
+                                    <td class="time-cell">{{ f.created_at.strftime("%d %b, %H:%M") }}</td>
+                                    <td>
+                                        <span style="font-family: var(--mono); font-size: 0.78rem; color: #64748b;">#{{ f.user_id }}</span>
+                                    </td>
+                                    <td class="comment-cell">
+                                        <span class="comment-text"
+                                              onclick="this.classList.toggle('expanded')"
+                                              title="Click to expand">{{ f.comment_text }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-toxic {{ 'toxic' if f.original_prediction == 'toxic' else 'non-toxic' }}">
+                                            {{ f.original_prediction }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="confidence-bar-wrap">
+                                            <div class="confidence-bar">
+                                                <div class="confidence-bar-fill"
+                                                     style="width: {{ (f.original_confidence * 100) | round(1) }}%;
+                                                            background: {{ 'var(--danger) ' if f.original_prediction == 'toxic' else 'var(--success)' }}">
+                                                </div>
+                                            </div>
+                                            <span class="confidence-val">{{ (f.original_confidence * 100) | round(1) }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span style="font-family: var(--mono);
+                                                     font-size: 0.82rem;
+                                                     color: var(--text)">{{ f.corrected_label or '—' }}</span>
+                                    </td>
+                                    <td>
+                                        <span style="display: inline-block;
+                                                     font-family: var(--mono);
+                                                     font-size: 0.6rem;
+                                                     letter-spacing: 0.1em;
+                                                     text-transform: uppercase;
+                                                     padding: 3px 10px;
+                                                     border-radius: 4px;
+                                                     font-weight: 700;
+                                                     background: rgba(100,116,139,0.15);
+                                                     color: #64748b;
+                                                     border: 1px solid rgba(100,116,139,0.25)">✓ Reviewed</span>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+    <script>
+  function confirmRetrain() {
+    return confirm('Trigger model retraining using all reviewed entries?');
+  }
+    </script>
+{% endblock %}

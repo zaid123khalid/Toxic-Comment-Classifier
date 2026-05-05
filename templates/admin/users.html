@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Manage Users — TCCS Admin{% endblock %}
+{% block styling %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/admin.css') }}" />
+{% endblock %}
+{% block content %}
+    <div class="page-wrap">
+        <div class="page-header">
+            <div>
+                <div class="label">Admin Console</div>
+                <h1>
+                    Manage <span>Users</span>
+                </h1>
+            </div>
+            <a href="{{ url_for("main.dashboard") }}">← Back to Dashboard</a>
+        </div>
+        <div class="toolbar">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text"
+                       id="searchInput"
+                       placeholder="Search by username or email..."
+                       oninput="filterTable()" />
+            </div>
+            <button class="filter-btn active" id="btn-all" onclick="setFilter('all')">All</button>
+            <button class="filter-btn admin-f"
+                    id="btn-admin"
+                    onclick="setFilter('admin')">Admins</button>
+            <button class="filter-btn" id="btn-user" onclick="setFilter('user')">Users</button>
+            <div class="count-pill">
+                Showing <span id="visibleCount">{{ users|length }}</span> of {{ users|length }}
+            </div>
+        </div>
+        <div class="panel">
+            {% if users %}
+                <table class="users-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Predictions</th>
+                            <th>Joined</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                            <tr data-role="{{ u.role }}"
+                                data-name="{{ u.username | lower }}"
+                                data-email="{{ u.email | lower }}">
+                                <td>
+                                    <div class="identity">
+                                        <div class="avatar {{ 'admin-av' if u.role == 'admin' else '' }}">{{ u.username[0].upper() }}</div>
+                                        <div>
+                                            <div class="u-name">
+                                                {{ u.username }}
+                                                {% if u.id == current_user.id %}<span class="you-tag">You</span>{% endif %}
+                                            </div>
+                                            <div class="u-email">{{ u.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="role-badge {{ u.role }}">{{ u.role }}</span>
+                                </td>
+                                <td class="pred-count">{{ u.predictions | length }}</td>
+                                <td class="time-cell">{{ u.created_at.strftime("%d %b %Y") }}</td>
+                                <td>
+                                    <button class="delete-btn"
+                                            {% if u.id==current_user.id %}disabled title="Cannot delete your own account"{% endif %}
+                                            onclick="openModal({{ u.id }}, '{{ u.username }}', {{ u.predictions | length }})">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">No users registered yet</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box">
+            <div class="modal-title">⚠ Confirm Delete User</div>
+            <div class="modal-body">
+                You are about to delete user
+                <strong id="modalUsername" style="color: var(--text)"></strong>. This will
+                permanently remove their account and all associated data.
+                <div class="modal-warning" id="modalPredWarning"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <form id="deleteForm" method="POST">
+                    <button type="submit" class="btn-confirm">Delete User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentFilter = "all";
+
+        function setFilter(f) {
+            currentFilter = f;
+            document
+                .querySelectorAll(".filter-btn")
+                .forEach((b) => b.classList.remove("active"));
+            document.getElementById("btn-" + f).classList.add("active");
+            filterTable();
+        }
+
+        function filterTable() {
+            const q = document.getElementById("searchInput").value.toLowerCase();
+            const rows = document.querySelectorAll("#usersTable tbody tr");
+            let visible = 0;
+            rows.forEach((row) => {
+                const role = row.dataset.role;
+                const name = row.dataset.name;
+                const email = row.dataset.email;
+                const matchFilter = currentFilter === "all" || role === currentFilter;
+                const matchSearch = !q || name.includes(q) || email.includes(q);
+                if (matchFilter && matchSearch) {
+                    row.classList.remove("hidden");
+                    visible++;
+                } else row.classList.add("hidden");
+            });
+            document.getElementById("visibleCount").textContent = visible;
+        }
+
+        function openModal(id, username, predCount) {
+            document.getElementById("modalUsername").textContent = username;
+            document.getElementById("deleteForm").action =
+                "/admin/users/" + id + "/delete";
+            const warning = document.getElementById("modalPredWarning");
+            warning.textContent =
+                predCount > 0 ?
+                `⚠ This will also delete ${predCount} prediction(s) linked to this user.` :
+                "";
+            document.getElementById("deleteModal").classList.add("open");
+        }
+
+        function closeModal() {
+            document.getElementById("deleteModal").classList.remove("open");
+        }
+
+        document
+            .getElementById("deleteModal")
+            .addEventListener("click", function(e) {
+                if (e.target === this) closeModal();
+            });
+    </script>
+{% endblock %}

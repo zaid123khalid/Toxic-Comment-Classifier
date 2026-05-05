@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}
+    All Predictions — TCCS Admin{%
+    endblock %}
+    {% block styling %}
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/admin.css') }}" />
+    {% endblock %}
+    {% block content %}
+        <div class="page-wrap">
+            <div class="page-header">
+                <div>
+                    <div class="label">Admin Console</div>
+                    <h1>
+                        All <span>Predictions</span>
+                    </h1>
+                </div>
+                <a href="{{ url_for("main.dashboard") }}">← Back to Dashboard</a>
+            </div>
+            <div class="toolbar">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text"
+                           id="searchInput"
+                           placeholder="Search comments or users..."
+                           oninput="filterTable()" />
+                </div>
+                <button class="filter-btn active" id="btn-all" onclick="setFilter('all')">All</button>
+                <button class="filter-btn danger" id="btn-toxic" onclick="setFilter('toxic')">Toxic</button>
+                <button class="filter-btn success"
+                        id="btn-non-toxic"
+                        onclick="setFilter('non-toxic')">Non-Toxic</button>
+                <div class="count-pill">
+                    Showing <span id="visibleCount">{{ predictions|length }}</span> of {{
+                    predictions|length }}
+                </div>
+            </div>
+            <div class="panel">
+                {% if predictions %}
+                    <table class="pred-table" id="predTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)">
+                                    #<span class="sort-icon">↕</span>
+                                </th>
+                                <th>Comment</th>
+                                <th onclick="sortTable(2)">
+                                    Label<span class="sort-icon">↕</span>
+                                </th>
+                                <th onclick="sortTable(3)">
+                                    Confidence<span class="sort-icon">↕</span>
+                                </th>
+                                <th>User</th>
+                                <th onclick="sortTable(5)">
+                                    Date<span class="sort-icon">↕</span>
+                                </th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in predictions %}
+                                <tr data-label="{{ p.predicted_label }}"
+                                    data-comment="{{ p.comment_text | lower }}"
+                                    data-user="{{ p.user.username | lower if p.user else '' }}">
+                                    <td class="id-cell">#{{ p.id }}</td>
+                                    <td class="comment-cell">
+                                        <span class="comment-text"
+                                              onclick="this.classList.toggle('expanded')"
+                                              title="Click to expand">{{ p.comment_text }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-label {{ 'toxic' if p.predicted_label == 'toxic' else 'non-toxic' }}">{{ p.predicted_label }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="conf-wrap">
+                                            <div class="conf-bar">
+                                                <div class="conf-fill"
+                                                     style="width:{{ (p.confidence_score * 100)|round(0) }}%;
+                                                            background: {{ 'var(--danger) ' if p.predicted_label == 'toxic' else 'var(--success)' }}">
+                                                </div>
+                                            </div>
+                                            <span class="conf-val">{{ (p.confidence_score * 100)|round(1) }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if p.user %}
+                                            <div class="user-chip">
+                                                <div class="avatar">{{ p.user.username[0].upper() }}</div>
+                                                {{ p.user.username }}
+                                            </div>
+                                        {% else %}
+                                            <span style="color: var(--muted); font-size: 0.75rem">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="time-cell">{{ p.created_at.strftime("%d %b %Y, %H:%M") }}</td>
+                                    <td>
+                                        <button class="delete-btn" onclick="openModal({{ p.id }})">Delete</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="empty-state">// No predictions in the database yet</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="modal-overlay" id="deleteModal">
+            <div class="modal-box">
+                <div class="modal-title">⚠ Confirm Delete</div>
+                <div class="modal-body">
+                    This will permanently delete prediction
+                    <strong id="modalPredId" style="color: var(--text)"></strong>
+                    and all its category scores. This action cannot be undone.
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <form id="deleteForm" method="POST">
+                        <button type="submit" class="btn-confirm">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+  let currentFilter = "all";
+
+  function setFilter(f) {
+    currentFilter = f;
+    document
+      .querySelectorAll(".filter-btn")
+      .forEach((b) => b.classList.remove("active"));
+    document.getElementById("btn-" + f).classList.add("active");
+    filterTable();
+  }
+
+  function filterTable() {
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.querySelectorAll("#predTable tbody tr");
+    let visible = 0;
+    rows.forEach((row) => {
+      const label = row.dataset.label;
+      const comment = row.dataset.comment;
+      const user = row.dataset.user;
+      const matchFilter = currentFilter === "all" || label === currentFilter;
+      const matchSearch = !q || comment.includes(q) || user.includes(q);
+      if (matchFilter && matchSearch) {
+        row.classList.remove("hidden");
+        visible++;
+      } else row.classList.add("hidden");
+    });
+    document.getElementById("visibleCount").textContent = visible;
+  }
+
+  function openModal(id) {
+    document.getElementById("modalPredId").textContent = "#" + id;
+    document.getElementById("deleteForm").action =
+      "/admin/predictions/" + id + "/delete";
+    document.getElementById("deleteModal").classList.add("open");
+  }
+
+  function closeModal() {
+    document.getElementById("deleteModal").classList.remove("open");
+  }
+
+  document
+    .getElementById("deleteModal")
+    .addEventListener("click", function (e) {
+      if (e.target === this) closeModal();
+    });
+
+  let sortDir = {};
+
+function sortTable(col) {
+    const tbody = document.querySelector("#predTable tbody");
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    sortDir[col] = !sortDir[col];
+    
+    rows.sort((a, b) => {
+        const aVal = a.cells[col].textContent.trim();
+        const bVal = b.cells[col].textContent.trim();
+        
+        if (col === 0) {
+            const aNum = parseInt(aVal.replace('#', ''), 10);
+            const bNum = parseInt(bVal.replace('#', ''), 10);
+            return sortDir[col] ? aNum - bNum : bNum - aNum;
+        }
+        
+        // Try numeric sort for other columns (like confidence %)
+        const aNum = parseFloat(aVal.replace('%', ''));
+        const bNum = parseFloat(bVal.replace('%', ''));
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+            return sortDir[col] ? aNum - bNum : bNum - aNum;
+        }
+        
+        // Fallback to string comparison
+        return sortDir[col] ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+    
+    rows.forEach((r) => tbody.appendChild(r));
+}
+        </script>
+    {% endblock %}

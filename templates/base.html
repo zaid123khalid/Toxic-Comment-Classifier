@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            {% block title %}My Flask App{% endblock %}
+        </title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+              rel="stylesheet" />
+        {% block styling %}{% endblock %}
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/home.css') }}" />
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/navbar.css') }}" />
+    </head>
+    <body>
+        <nav class="tccs-nav" id="mainNav">
+            <a class="tccs-brand" href="/">
+                <div class="tccs-brand-icon">🛡️</div>
+                <span class="tccs-brand-name">TCCS</span>
+            </a>
+            <button class="tccs-toggler" onclick="toggleNav()">☰</button>
+            <ul class="tccs-nav-links" id="navLinks">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role ==
+                        'admin' %}
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+                               href="/admin/dashboard">Dashboard</a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.predictions' %}active{% endif %}"
+                               href="/admin/predictions">All Predictions</a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.view_flags' %}active{% endif %}"
+                               href="/admin/flags">Flagged Predictions</a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.system_stats' %}active{% endif %}"
+                               href="/admin/stats">System Stats</a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.model_history' %}active{% endif %}"
+                               href="/admin/model-history">Model History</a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.users' %}active{% endif %}"
+                               href="/admin/users">Manage Users</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.analyze' %}active{% endif %}"
+                               href="/analyze">Analyze</a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.history' %}active{% endif %}"
+                               href="/history">My History</a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.endpoint == 'main.stats' %}active{% endif %}"
+                               href="/stats">My Stats</a>
+                        </li>
+                    {% endif %}
+                    <li>
+                        <div class="nav-divider"></div>
+                    </li>
+                    <li>
+                        <a class="nav-link nav-logout" href="/logout">Logout</a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a class="nav-link" href="/login">Login</a>
+                    </li>
+                    <li>
+                        <a class="nav-link nav-cta" href="/signup">Sign Up</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        <div id="flash-container"
+             style="position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    z-index: 9999;
+                    min-width: 300px;
+                    max-width: 400px">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for
+                    category, message in messages %}
+                    <div class="flash-toast alert alert-{{ category }} d-flex align-items-center justify-content-between shadow"
+                         style="margin-bottom: 10px;
+                                border-radius: 8px;
+                                opacity: 1;
+                                transition: opacity 0.5s ease">
+                        <div class="d-flex align-items-center gap-2">
+                            {% if category == 'success' %}
+                                <span>✅</span>
+                            {% elif category == 'danger' %}
+                                <span>❌</span>
+                            {% elif category == 'warning' %}
+                                <span>⚠️</span>
+                            {% else %}
+                                <span>ℹ️</span>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="btn-close ms-3" onclick="dismissToast(this)"></button>
+                    </div>
+                {% endfor %}
+            {% endwith %}
+        </div>
+        {% if request.endpoint in ['main.login', 'main.signup'] %}
+            {% block
+                full_content %}
+            {% endblock %}
+        {% else %}
+            <div class="container mt-4">
+                {% block content %}{% endblock %}
+            </div>
+        {% endif %}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+        // Navbar scroll effect
+        window.addEventListener("scroll", function() {
+            document
+                .getElementById("mainNav")
+                ?.classList.toggle("scrolled", window.scrollY > 20);
+        });
+
+        // Mobile toggle
+        function toggleNav() {
+            document.getElementById("navLinks").classList.toggle("open");
+        }
+
+        // Flash toasts
+        function dismissToast(btn) {
+            const toast = btn.closest(".flash-toast");
+            toast.style.opacity = "0";
+            setTimeout(() => toast.remove(), 500);
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll(".flash-toast").forEach(function(toast) {
+                setTimeout(function() {
+                    toast.style.opacity = "0";
+                    setTimeout(() => toast.remove(), 500);
+                }, 4000);
+            });
+        });
+        </script>
+    </body>
+    <script>
+      function dismissToast(btn) {
+          const toast = btn.closest(".flash-toast");
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 500);
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+          const toasts = document.querySelectorAll(".flash-toast");
+          toasts.forEach(function(toast) {
+              setTimeout(function() {
+                  toast.style.opacity = "0";
+                  setTimeout(() => toast.remove(), 500);
+              }, 4000); // hides after 4 seconds
+          });
+      });
+    </script>
+</html>

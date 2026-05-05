@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}My Stats — TCCS{% endblock %}
+{%
+block styling %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/user.css') }}" />
+{% endblock %}
+{% block content %}
+    <div class="user-page-header">
+        <div class="label">User Panel</div>
+        <h1>
+            My <span>Stats</span>
+        </h1>
+        <p>Your personal prediction statistics and breakdown.</p>
+    </div>
+    {% set toxic_rate = ((toxic / total * 100) | round(1)) if total > 0 else 0 %} {%
+    set non_toxic_rate = 100 - toxic_rate %}
+    <div class="stats-grid">
+        <div class="stat-card c-blue">
+            <div class="stat-label">Total Predictions</div>
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-sub">All time</div>
+            <div class="stat-icon">🔬</div>
+        </div>
+        <div class="stat-card c-red">
+            <div class="stat-label">Toxic Detected</div>
+            <div class="stat-value">{{ toxic }}</div>
+            <div class="stat-sub">{{ toxic_rate }}% of total</div>
+            <div class="stat-icon">⚠️</div>
+        </div>
+        <div class="stat-card c-green">
+            <div class="stat-label">Non-Toxic</div>
+            <div class="stat-value">{{ non_toxic }}</div>
+            <div class="stat-sub">{{ non_toxic_rate }}% of total</div>
+            <div class="stat-icon">✅</div>
+        </div>
+    </div>
+    {% if total > 0 %}
+        <div class="stats-two-col">
+            <div class="user-panel">
+                <div class="user-panel-header">
+                    <span class="user-panel-title">Label Distribution</span>
+                    <span class="user-panel-badge">All Time</span>
+                </div>
+                <div class="donut-wrap">
+                    {% set toxic_deg = (toxic_rate / 100 * 251.2) | round(1) %}
+                    {% set
+                    nontoxic_deg = (251.2 - toxic_deg) | round(1) %}
+                    <svg width="130" height="130" viewBox="0 0 130 130">
+                        <circle cx="65" cy="65" r="40" fill="none" stroke="var(--success)" stroke-width="18" stroke-dasharray="{{ nontoxic_deg }} {{ toxic_deg }}" stroke-dashoffset="62.8" transform="rotate(-90 65 65)" />
+                        <circle cx="65" cy="65" r="40" fill="none" stroke="var(--danger)" stroke-width="18" stroke-dasharray="{{ toxic_deg }} {{ nontoxic_deg }}" stroke-dashoffset="{{ 62.8 - nontoxic_deg }}" transform="rotate(-90 65 65)" />
+                        <text x="65" y="60" text-anchor="middle" font-family="Space Mono,monospace" font-size="13" font-weight="700" fill="var(--text)">
+                        {{ total }}
+                        </text>
+                        <text x="65" y="74" text-anchor="middle" font-family="Space Mono,monospace" font-size="8" fill="var(--muted)">
+                        TOTAL
+                        </text>
+                    </svg>
+                    <div class="donut-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: var(--danger)"></div>
+                            <span class="legend-text">Toxic</span>
+                            <span class="legend-val">{{ toxic }}
+                                <span style="color: var(--muted); font-size: 0.65rem">({{ toxic_rate }}%)</span></span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: var(--success)"></div>
+                                <span class="legend-text">Non-Toxic</span>
+                                <span class="legend-val">{{ non_toxic }}
+                                    <span style="color: var(--muted); font-size: 0.65rem">({{ non_toxic_rate }}%)</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-panel">
+                        <div class="user-panel-header">
+                            <span class="user-panel-title">Breakdown</span>
+                        </div>
+                        <div class="breakdown-list">
+                            <div>
+                                <div class="breakdown-top">
+                                    <span class="b-label">Toxic</span>
+                                    <span class="b-val">{{ toxic }} / {{ total }}</span>
+                                </div>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-bar-fill"
+                                         style="width: {{ toxic_rate }}%;
+                                                background: var(--danger)"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="breakdown-top">
+                                    <span class="b-label">Non-Toxic</span>
+                                    <span class="b-val">{{ non_toxic }} / {{ total }}</span>
+                                </div>
+                                <div class="breakdown-bar">
+                                    <div class="breakdown-bar-fill"
+                                         style="width: {{ non_toxic_rate }}%;
+                                                background: var(--success)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="user-panel" style="margin-top: 1rem">
+                    <div class="empty-state">No predictions yet — start analyzing comments to see your stats</div>
+                </div>
+            {% endif %}
+        {% endblock %}

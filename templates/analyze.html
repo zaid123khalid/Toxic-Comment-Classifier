@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Analyze — TCCS{% endblock %}
+{% block
+    styling %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/user.css') }}" />
+{% endblock %}
+{% block content %}
+    <div class="user-page-header">
+        <div class="label">User Panel</div>
+        <h1>
+            Analyze <span>Comment</span>
+        </h1>
+        <p>
+            Enter a comment below to detect whether it contains toxic or harmful
+            language.
+        </p>
+    </div>
+    <div class="analyze-wrap">
+        <div class="user-panel">
+            <div class="user-panel-header">
+                <span class="user-panel-title">Comment Input</span>
+                <span class="user-panel-badge">Max 1000 chars</span>
+            </div>
+            <div style="padding: 1.4rem">
+                <form method="POST">
+                    <textarea name="comment"
+                              class="analyze-textarea"
+                              rows="6"
+                              placeholder="Type or paste a comment here..."
+                              required
+                              id="commentBox"
+                              maxlength="1000"></textarea>
+                    <div class="char-count" id="charCount">0 / 1000</div>
+                    <div style="text-align: center; margin-top: 1.2rem">
+                        <button type="submit" class="analyze-btn">⚡ Analyze Comment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% if error %}
+            <div style="background: rgba(255, 77, 109, 0.1);
+                        border: 1px solid rgba(255, 77, 109, 0.3);
+                        border-radius: 10px;
+                        padding: 0.9rem 1.2rem;
+                        margin-top: 1.2rem;
+                        color: #ff4d6d;
+                        font-size: 0.88rem">⚠ {{ error }}</div>
+        {% endif %}
+        {% if result %}
+            <div class="result-card">
+                <div class="result-header">
+                    <span class="result-verdict {{ 'toxic' if result.label == 'toxic' else 'non-toxic' }}">
+                        {{ '☠ Toxic Detected' if result.label == 'toxic' else '✅ Non-Toxic' }}
+                    </span>
+                </div>
+                <div class="result-label">Confidence Score</div>
+                <div class="result-confidence-val">{{ (result.confidence * 100) | round(2) }}%</div>
+                <div class="conf-track">
+                    <div class="conf-fill"
+                         style="width: {{ (result.confidence * 100) | round(2) }}%;
+                                background: {{ 'var(--danger) ' if result.label == 'toxic' else 'var(--success)' }}">
+                    </div>
+                </div>
+            </div>
+            {% if current_user.is_authenticated %}
+                <form action="{{ url_for("main.flag_prediction") }}"
+                      method="POST"
+                      class="flag-form">
+                    <input type="hidden"
+                           name="comment"
+                           value="{{ request.form.get('comment', '') }}">
+                    <input type="hidden" name="prediction" value="{{ result.label }}">
+                    <input type="hidden" name="confidence" value="{{ result.confidence }}">
+                    <div class="flag-form-text">
+                        <span class="flag-form-icon">⚑</span>
+                        <div class="flag-form-label">
+                            <strong>Wrong Prediction?</strong>
+                            Help improve the model by flagging incorrect results.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-flag">⚑ Flag as Wrong</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+    <script>
+  const textarea = document.getElementById("commentBox");
+  const counter = document.getElementById("charCount");
+  textarea.addEventListener("input", function () {
+    const len = textarea.value.length;
+    counter.textContent = len + " / 1000";
+    counter.className =
+      "char-count" +
+      (len >= 1000 ? " at-limit" : len >= 800 ? " near-limit" : "");
+  });
+    </script>
+{% endblock %}

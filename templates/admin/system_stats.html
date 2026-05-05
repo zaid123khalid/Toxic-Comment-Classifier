@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}
+    System Statistics — TCCS Admin{%
+    endblock %}
+    {% block styling %}
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='css/admin.css') }}" />
+    {% endblock %}
+    {% block content %}
+        <div class="page-wrap">
+            <div class="page-header">
+                <div>
+                    <div class="label">Admin Console</div>
+                    <h1>
+                        System <span>Statistics</span>
+                    </h1>
+                </div>
+                <a href="{{ url_for("main.dashboard") }}">← Back to Dashboard</a>
+            </div>
+            <div class="summary-grid">
+                <div class="sum-card a1">
+                    <div class="sum-label">Total Predictions</div>
+                    <div class="sum-val">{{ total_preds }}</div>
+                </div>
+                <div class="sum-card a2">
+                    <div class="sum-label">Toxic</div>
+                    <div class="sum-val">{{ toxic_count }}</div>
+                </div>
+                <div class="sum-card a3">
+                    <div class="sum-label">Non-Toxic</div>
+                    <div class="sum-val">{{ non_toxic_count }}</div>
+                </div>
+                <div class="sum-card a4">
+                    <div class="sum-label">Toxic Rate</div>
+                    <div class="sum-val">{{ toxic_rate }}%</div>
+                </div>
+                <div class="sum-card a5">
+                    <div class="sum-label">Total Users</div>
+                    <div class="sum-val">{{ total_users }}</div>
+                </div>
+            </div>
+            <div class="two-col">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Label Distribution</span>
+                        <span class="panel-badge">All Time</span>
+                    </div>
+                    {% if total_preds > 0 %}
+                        <div class="donut-wrap">
+                            {% set toxic_deg = (toxic_rate / 100 * 251.2) | round(1) %}
+                            {% set
+                            nontoxic_deg = (251.2 - toxic_deg) | round(1) %}
+                            <svg width="140" height="140" viewBox="0 0 140 140">
+                                <circle cx="70" cy="70" r="40" fill="none" stroke="{{ 'var(--success) ' }}" stroke-width="20" stroke-dasharray="{{ nontoxic_deg }} {{ toxic_deg }}" stroke-dashoffset="62.8" transform="rotate(-90 70 70)" />
+                                <circle cx="70" cy="70" r="40" fill="none" stroke="var(--danger)" stroke-width="20" stroke-dasharray="{{ toxic_deg }} {{ nontoxic_deg }}" stroke-dashoffset="{{ 62.8 - nontoxic_deg }}" transform="rotate(-90 70 70)" />
+                                <text x="70" y="65" text-anchor="middle" font-family="Space Mono,monospace" font-size="13" font-weight="700" fill="var(--text)">
+                                {{ total_preds }}
+                                </text>
+                                <text x="70" y="80" text-anchor="middle" font-family="Space Mono,monospace" font-size="8" fill="var(--muted)">
+                                TOTAL
+                                </text>
+                            </svg>
+                            <div class="donut-legend">
+                                <div class="legend-item">
+                                    <div class="legend-dot" style="background: var(--danger)"></div>
+                                    <span class="legend-text">Toxic</span>
+                                    <span class="legend-val">{{ toxic_count }}
+                                        <span style="color: var(--muted); font-size: 0.65rem">({{ toxic_rate }}%)</span></span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="legend-dot" style="background: var(--success)"></div>
+                                        <span class="legend-text">Non-Toxic</span>
+                                        <span class="legend-val">{{ non_toxic_count }}
+                                            <span style="color: var(--muted); font-size: 0.65rem">({{ 100 - toxic_rate }}%)</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="no-model">No prediction data yet</div>
+                            {% endif %}
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span class="panel-title">Predictions by User</span>
+                                <span class="panel-badge">Top 6</span>
+                            </div>
+                            {% if total_preds > 0 %}
+                                <div class="bar-chart">
+                                    {% set colors = ["var(--accent)", "var(--purple)", "var(--success)", "var(--warning)", "var(--danger)", "#f472b6"] %}
+                                    {% for u in top_users
+                                        %}
+                                        {% set pct = ((u.pred_count / total_preds) * 100) | round(1) %}
+                                        <div class="bar-row">
+                                            <div class="bar-row-label">{{ u.username[:10] }}</div>
+                                            <div class="bar-track">
+                                                <div class="bar-fill"
+                                                     style="width: {{ pct }}%;
+                                                            background: {{ colors[loop.index0 % 6] }}">
+                                                    <span>{{ u.pred_count }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div style="color: var(--muted);
+                                                    font-family: var(--mono);
+                                                    font-size: 0.72rem;
+                                                    padding: 1rem 0">No user data</div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-model">No prediction data yet</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="two-col">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span class="panel-title">Model Metadata</span>
+                                {% if model_info %}<span class="panel-badge">{{ model_info.version }}</span>{% endif %}
+                            </div>
+                            {% if model_info %}
+                                <div class="meta-grid">
+                                    <div class="meta-item">
+                                        <div class="meta-key">Version</div>
+                                        <div class="meta-val accent">{{ model_info.version }}</div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <div class="meta-key">Algorithm</div>
+                                        <div class="meta-val">{{ model_info.algorithm }}</div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <div class="meta-key">Dataset</div>
+                                        <div class="meta-val">{{ model_info.dataset_name or '—' }}</div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <div class="meta-key">Training Date</div>
+                                        <div class="meta-val">
+                                            {{ model_info.training_date.strftime("%d %b %Y") if
+                                            model_info.training_date else '—' }}
+                                        </div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <div class="meta-key">Accuracy</div>
+                                        <div class="meta-val accent">{{ (model_info.accuracy * 100) | round(2) }}%</div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <div class="meta-key">Precision</div>
+                                        <div class="meta-val">
+                                            {{ (model_info.precision_score * 100) | round(2) ~ '%' if
+                                            model_info.precision_score else '—' }}
+                                        </div>
+                                    </div>
+                                    <div class="meta-item">
+                                        <div class="meta-key">Recall</div>
+                                        <div class="meta-val">
+                                            {{ (model_info.recall_score * 100) | round(2) ~ '%' if
+                                            model_info.recall_score else '—' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="no-model">
+                                    No model metadata yet
+                                    <br />
+                                    <br />
+                                    <span style="color: #334155">Will populate once ML model is integrated.</span>
+                                </div>
+                            {% endif %}
+                            <div class="panel-footer">
+                                <a href="{{ url_for("main.model_history") }}">View all model versions →</a>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span class="panel-title">Model Performance</span>
+                                <span class="panel-badge">Metrics</span>
+                            </div>
+                            {% if model_info %}
+                                <div class="metrics-list">
+                                    {% set metrics = [ ('Accuracy', model_info.accuracy, 'var(--accent)'),
+                                                                            ('Precision', model_info.precision_score, 'var(--purple)'), ('Recall',
+                                                                        model_info.recall_score, 'var(--success)'), ] %}
+                                    {% for name, val, color
+                                        in metrics %}
+                                        <div class="metric-row">
+                                            <div class="metric-top">
+                                                <span class="m-label">{{ name }}</span>
+                                                <span class="m-val" style="color: {{ color }};">{{ (val * 100) | round(2) ~ '%' if val else 'N/A' }}</span>
+                                            </div>
+                                            <div class="metric-bar">
+                                                <div class="metric-fill"
+                                                     style="width: {{ (val * 100) | round(1) if val else 0 }}%;
+                                                            background: {{ color }}"></div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-model">Awaiting model integration</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endblock %}

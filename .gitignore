@@ -1,0 +1,8 @@
+start.ps1
+__pycache__/
+venv/
+*.pyc
+*.pyo
+*.pyd
+.vscode/
+.idea/

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Home — TCCS{% endblock %}
+{% block
+    content %}
+    <div class="home-page">
+        <section class="hero">
+            <div class="hero-blob hero-blob-1"></div>
+            <div class="hero-blob hero-blob-2"></div>
+            <div class="hero-blob hero-blob-3"></div>
+            <div class="hero-content">
+                <div class="hero-pill">⚡ AI-Powered Content Moderation</div>
+                <h1 class="hero-title">
+                    Detect Toxic Comments
+                    <br />
+                    <span class="gradient-text">with Machine Learning</span>
+                </h1>
+                <p class="hero-sub">
+                    An AI-powered web application that identifies harmful, offensive, and
+                    inappropriate content in real time using Natural Language Processing.
+                </p>
+                <div class="hero-actions">
+                    <a href="/analyze" class="btn-primary-grad">Start Analyzing →</a>
+                    <a href="#about" class="btn-outline-grad">Learn More</a>
+                </div>
+                <div class="hero-stats">
+                    <div>
+                        <div class="hero-stat-val">NLP</div>
+                        <div class="hero-stat-label">Powered</div>
+                    </div>
+                    <div>
+                        <div class="hero-stat-val">Real-Time</div>
+                        <div class="hero-stat-label">Analysis</div>
+                    </div>
+                    <div>
+                        <div class="hero-stat-val">ML</div>
+                        <div class="hero-stat-label">Model</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="home-section dark" id="about">
+            <div class="container">
+                <div class="about-grid">
+                    <div>
+                        <div class="section-label">About the System</div>
+                        <h2 class="section-title">What is TCCS?</h2>
+                        <p class="section-sub">
+                            The Toxic Comment Classification System (TCCS) is designed to
+                            identify harmful, offensive, or inappropriate comments in online
+                            platforms. It uses machine learning algorithms trained on real-world
+                            datasets to classify comments as toxic or non-toxic.
+                        </p>
+                        <p class="section-sub mt-3">
+                            This system can assist social media platforms, forums, and online
+                            communities in maintaining healthy digital environments.
+                        </p>
+                    </div>
+                    <div class="about-image-wrap">
+                        <div class="about-image-card">
+                            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+                                 alt="AI Illustration" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="home-section light">
+            <div class="container">
+                <div class="text-center">
+                    <div class="section-label">What We Offer</div>
+                    <h2 class="section-title">Key Features</h2>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">⚡</span>
+                        <div class="feature-title">Real-Time Analysis</div>
+                        <p class="feature-desc">
+                            Instantly classify comments using an integrated machine learning
+                            model with confidence scores.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🗂️</span>
+                        <div class="feature-title">Prediction History</div>
+                        <p class="feature-desc">
+                            Every analyzed comment is stored in a structured database for
+                            monitoring and review.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">📊</span>
+                        <div class="feature-title">Statistical Insights</div>
+                        <p class="feature-desc">
+                            View your personal stats including total predictions, toxic rates,
+                            and classification distribution.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="home-section dark">
+            <div class="container">
+                <div class="text-center">
+                    <div class="section-label">The Process</div>
+                    <h2 class="section-title">How It Works</h2>
+                </div>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Input</div>
+                        <p class="step-desc">User submits a comment through the analyze page.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Processing</div>
+                        <p class="step-desc">Text is cleaned and converted into a numerical format.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Classification</div>
+                        <p class="step-desc">ML model predicts the toxicity label and confidence score.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Storage</div>
+                        <p class="step-desc">Prediction is saved to the database for history and stats.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="cta-section">
+            <div class="cta-blob cta-blob-1"></div>
+            <div class="cta-blob cta-blob-2"></div>
+            <div class="cta-content">
+                <h2 class="cta-title">Ready to Test the System?</h2>
+                <p class="cta-sub">Paste any comment and see the AI classify it in real time.</p>
+                <a href="/analyze" class="btn-primary-grad">Analyze a Comment Now →</a>
+            </div>
+        </section>
+    </div>
+{% endblock %}

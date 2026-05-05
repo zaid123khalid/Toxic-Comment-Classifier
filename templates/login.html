@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block styling %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/auth.css') }}" />
+{% endblock %}
+{% block title %}Login — TCCS{% endblock %}
+{% block full_content
+    %}
+    <div class="auth-page login-page">
+        <div class="auth-left">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="auth-brand">
+                <span class="auth-brand-logo">🛡️</span>
+                <div class="auth-brand-name">
+                    TCCS
+                    <span>Toxic Comment
+                        <br />
+                    Classification</span>
+                </div>
+                <div class="auth-brand-tagline">
+                    AI-powered detection of harmful content using Natural Language
+                    Processing and Machine Learning.
+                </div>
+                <div class="auth-brand-pills">
+                    <span class="auth-brand-pill">NLP Powered</span>
+                    <span class="auth-brand-pill">Real-Time Analysis</span>
+                    <span class="auth-brand-pill">ML Model</span>
+                    <span class="auth-brand-pill">Prediction History</span>
+                </div>
+            </div>
+        </div>
+        <div class="auth-right">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="blob blob-3"></div>
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <div class="auth-logo-mark">🛡️</div>
+                </div>
+                <div class="auth-title">Welcome Back</div>
+                <div class="auth-sub">Log in to your TCCS account</div>
+                <form method="POST" action="/login">
+                    <div class="field">
+                        <label for="email">Email Address</label>
+                        <input type="email"
+                               id="email"
+                               name="email"
+                               placeholder="you@example.com"
+                               required
+                               autofocus />
+                    </div>
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               placeholder="Enter your password"
+                               required />
+                    </div>
+                    <button type="submit" class="auth-btn">Log In</button>
+                </form>
+                <div class="auth-divider">
+                    <span>Don't have an account?</span>
+                </div>
+                <div class="auth-footer">
+                    <a href="/signup">Create one here →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

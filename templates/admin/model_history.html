@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Model History — TCCS Admin{% endblock %}
+{% block styling %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/admin.css') }}" />
+{% endblock %}
+{% block content %}
+    <div class="page-wrap">
+        <div class="page-header">
+            <div>
+                <div class="label">Admin Console</div>
+                <h1>
+                    Model <span>History</span>
+                </h1>
+            </div>
+            <a href="{{ url_for("main.system_stats") }}">← Back to System Stats</a>
+        </div>
+        {% if models %}
+            <div style="display: flex;
+                        gap: 1rem;
+                        margin-bottom: 1.5rem;
+                        flex-wrap: wrap">
+                <div style="background: var(--surface);
+                            border: 1px solid var(--border);
+                            border-radius: 10px;
+                            padding: 0.9rem 1.4rem;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.8rem">
+                    <span style="font-family: var(--mono);
+                                 font-size: 0.62rem;
+                                 letter-spacing: 0.12em;
+                                 text-transform: uppercase;
+                                 color: var(--muted)">Total Versions</span>
+                    <span style="font-family: var(--mono);
+                                 font-size: 1.2rem;
+                                 font-weight: 700;
+                                 color: var(--accent)">{{ models | length }}</span>
+                </div>
+                <div style="background: var(--surface);
+                            border: 1px solid var(--border);
+                            border-radius: 10px;
+                            padding: 0.9rem 1.4rem;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.8rem">
+                    <span style="font-family: var(--mono);
+                                 font-size: 0.62rem;
+                                 letter-spacing: 0.12em;
+                                 text-transform: uppercase;
+                                 color: var(--muted)">Latest Version</span>
+                    <span style="font-family: var(--mono);
+                                 font-size: 1.2rem;
+                                 font-weight: 700;
+                                 color: var(--success)">{{ models[0].version }}</span>
+                </div>
+                <div style="background: var(--surface);
+                            border: 1px solid var(--border);
+                            border-radius: 10px;
+                            padding: 0.9rem 1.4rem;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.8rem">
+                    <span style="font-family: var(--mono);
+                                 font-size: 0.62rem;
+                                 letter-spacing: 0.12em;
+                                 text-transform: uppercase;
+                                 color: var(--muted)">Best Accuracy</span>
+                    <span style="font-family: var(--mono);
+                                 font-size: 1.2rem;
+                                 font-weight: 700;
+                                 color: var(--warning)">
+                        {{ (models | max(attribute='accuracy') ).accuracy * 100 | round(2) }}%
+                    </span>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                {% for m in models %}
+                    {% set is_latest = loop.first %}
+                    <div class="panel"
+                         style="border-color: {{ 'rgba(0, 229, 255, 0.35) ' if is_latest else 'var(--border)' }}">
+                        <div class="panel-header">
+                            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                <span class="panel-title">{{ m.algorithm }}</span>
+                                {% if is_latest %}
+                                    <span style="font-family: var(--mono);
+                                                 font-size: 0.58rem;
+                                                 letter-spacing: 0.1em;
+                                                 text-transform: uppercase;
+                                                 background: rgba(0,229,255,0.1);
+                                                 color: var(--accent);
+                                                 border: 1px solid rgba(0,229,255,0.25);
+                                                 padding: 2px 8px;
+                                                 border-radius: 4px">Latest</span>
+                                {% endif %}
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                                {% if m.training_date %}
+                                    <span style="font-family: var(--mono);
+                                                 font-size: 0.65rem;
+                                                 color: var(--muted)">{{ m.training_date.strftime("%d %b %Y") }}</span>
+                                {% endif %}
+                                <span class="panel-badge">v{{ m.version }}</span>
+                            </div>
+                        </div>
+                        <div style="padding: 1.4rem;
+                                    display: grid;
+                                    grid-template-columns: 1fr 1fr 1fr;
+                                    gap: 1.4rem">
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div>
+                                    <div class="meta-key">Version</div>
+                                    <div class="meta-val accent">{{ m.version }}</div>
+                                </div>
+                                <div>
+                                    <div class="meta-key">Algorithm</div>
+                                    <div class="meta-val">{{ m.algorithm }}</div>
+                                </div>
+                                <div>
+                                    <div class="meta-key">Dataset</div>
+                                    <div class="meta-val">{{ m.dataset_name or '—' }}</div>
+                                </div>
+                                <div>
+                                    <div class="meta-key">Training Date</div>
+                                    <div class="meta-val">{{ m.training_date.strftime("%d %b %Y") if m.training_date else '—' }}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div>
+                                    <div class="meta-key">Accuracy</div>
+                                    <div class="meta-val" style="font-size: 1.5rem; color: var(--accent);">{{ (m.accuracy * 100) | round(2) }}%</div>
+                                </div>
+                                <div>
+                                    <div class="meta-key">Precision</div>
+                                    <div class="meta-val" style="color: var(--purple);">
+                                        {{ (m.precision_score * 100) | round(2) ~ '%' if m.precision_score else '—' }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="meta-key">Recall</div>
+                                    <div class="meta-val" style="color: var(--success);">
+                                        {{ (m.recall_score * 100) | round(2) ~ '%' if m.recall_score else '—' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex;
+                                        flex-direction: column;
+                                        gap: 1rem;
+                                        justify-content: center">
+                                <div>
+                                    <div style="display: flex;
+                                                justify-content: space-between;
+                                                margin-bottom: 5px">
+                                        <span style="font-family: var(--mono);
+                                                     font-size: 0.62rem;
+                                                     letter-spacing: 0.1em;
+                                                     text-transform: uppercase;
+                                                     color: var(--muted)">Accuracy</span>
+                                        <span style="font-family: var(--mono);
+                                                     font-size: 0.68rem;
+                                                     color: var(--accent)">{{ (m.accuracy * 100) | round(1) }}%</span>
+                                    </div>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill"
+                                             style="width: {{ (m.accuracy * 100) | round(1) }}%;
+                                                    background: var(--accent)"></div>
+                                    </div>
+                                </div>
+                                {% if m.precision_score %}
+                                    <div>
+                                        <div style="display: flex;
+                                                    justify-content: space-between;
+                                                    margin-bottom: 5px">
+                                            <span style="font-family: var(--mono);
+                                                         font-size: 0.62rem;
+                                                         letter-spacing: 0.1em;
+                                                         text-transform: uppercase;
+                                                         color: var(--muted)">Precision</span>
+                                            <span style="font-family: var(--mono);
+                                                         font-size: 0.68rem;
+                                                         color: var(--purple)">
+                                                {{ (m.precision_score * 100) | round(1) }}%
+                                            </span>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-fill"
+                                                 style="width: {{ (m.precision_score * 100) | round(1) }}%;
+                                                        background: var(--purple)"></div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if m.recall_score %}
+                                    <div>
+                                        <div style="display: flex;
+                                                    justify-content: space-between;
+                                                    margin-bottom: 5px">
+                                            <span style="font-family: var(--mono);
+                                                         font-size: 0.62rem;
+                                                         letter-spacing: 0.1em;
+                                                         text-transform: uppercase;
+                                                         color: var(--muted)">Recall</span>
+                                            <span style="font-family: var(--mono);
+                                                         font-size: 0.68rem;
+                                                         color: var(--success)">
+                                                {{ (m.recall_score * 100) | round(1) }}%
+                                            </span>
+                                        </div>
+                                        <div class="metric-bar">
+                                            <div class="metric-fill"
+                                                 style="width: {{ (m.recall_score * 100) | round(1) }}%;
+                                                        background: var(--success)"></div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="panel">
+                <div class="no-model">
+                    // No model metadata yet
+                    <br>
+                    <br>
+                    <span style="color: #334155;">Will populate once ML model is integrated.</span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

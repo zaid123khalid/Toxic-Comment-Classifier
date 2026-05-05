@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}My History — TCCS{% endblock %}
+{%
+block styling %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/user.css') }}" />
+{% endblock %}
+{% block content %}
+    <div class="user-page-header">
+        <div class="label">User Panel</div>
+        <h1>
+            My <span>History</span>
+        </h1>
+        <p>All your past predictions, most recent first.</p>
+    </div>
+    <div class="user-panel">
+        <div class="user-panel-header">
+            <span class="user-panel-title">Prediction Log</span>
+            <span class="user-panel-badge">{{ predictions | length }} total</span>
+        </div>
+        {% if predictions %}
+            <table class="pred-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Comment</th>
+                        <th>Label</th>
+                        <th>Confidence</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in predictions %}
+                        <tr>
+                            <td class="id-cell">#{{ p.id }}</td>
+                            <td class="comment-cell">
+                                <span class="comment-text"
+                                      onclick="this.classList.toggle('expanded')"
+                                      title="Click to expand">{{ p.comment_text }}</span>
+                            </td>
+                            <td>
+                                <span class="badge-toxic {{ 'toxic' if p.predicted_label == 'toxic' else 'non-toxic' }}">{{ p.predicted_label }}</span>
+                            </td>
+                            <td>
+                                <div class="confidence-bar-wrap">
+                                    <div class="confidence-bar">
+                                        <div class="confidence-bar-fill"
+                                             style="width: {{ (p.confidence_score * 100) | round(1) }}%;
+                                                    background: {{ 'var(--danger) ' if p.predicted_label == 'toxic' else 'var(--success)' }}">
+                                        </div>
+                                    </div>
+                                    <span class="confidence-val">{{ (p.confidence_score * 100) | round(1) }}%</span>
+                                </div>
+                            </td>
+                            <td class="time-cell">{{ p.created_at.strftime("%d %b %Y, %H:%M") }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty-state">No predictions yet — go analyze a comment first</div>
+        {% endif %}
+    </div>
+{% endblock %}

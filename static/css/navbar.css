@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
+:root {
+    --grad-1: #6366f1;
+    --grad-3: #06b6d4;
+    --font: 'Outfit', sans-serif;
+}
+
+.tccs-nav {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: rgba(32, 15, 51, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.6rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font);
+    transition: background 0.3s;
+}
+
+.tccs-nav.scrolled {
+    background: rgba(10, 8, 30, 0.85);
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.tccs-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+}
+
+.tccs-brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--grad-1), var(--grad-3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    flex-shrink: 0;
+}
+
+.tccs-brand-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+}
+
+.tccs-toggler {
+    display: none;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    transition: background 0.15s;
+}
+
+.tccs-toggler:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tccs-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.tccs-nav-links .nav-link {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.tccs-nav-links .nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.tccs-nav-links .nav-link.active {
+    color: #fff;
+    background: rgba(99, 102, 241, 0.18);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.tccs-nav-links .nav-link.nav-logout {
+    color: rgba(255, 100, 120, 0.8);
+}
+
+.tccs-nav-links .nav-link.nav-logout:hover {
+    color: #ff6478;
+    background: rgba(255, 77, 109, 0.1);
+}
+
+.tccs-nav-links .nav-link.nav-cta {
+    background: linear-gradient(135deg, var(--grad-1), var(--grad-3));
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    padding: 0.4rem 1.1rem;
+}
+
+.tccs-nav-links .nav-link.nav-cta:hover {
+    opacity: 0.88;
+    color: #fff;
+    background: linear-gradient(135deg, var(--grad-1), var(--grad-3));
+}
+
+.nav-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.12);
+    margin: 0 0.3rem;
+}
+
+@media (max-width: 768px) {
+    .tccs-toggler {
+        display: block;
+    }
+
+    .tccs-nav-links {
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.2rem;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(10, 8, 30, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 0.8rem 1rem;
+    }
+
+    .tccs-nav-links.open {
+        display: flex;
+    }
+
+    .tccs-nav-links .nav-link {
+        padding: 0.6rem 1rem;
+    }
+
+    .nav-divider {
+        width: 100%;
+        height: 1px;
+        margin: 0.2rem 0;
+    }
+}
